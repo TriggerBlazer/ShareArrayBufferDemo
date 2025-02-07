@@ -1,0 +1,126 @@
+<!-- Licensed under a BSD license. See license.html for license -->
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+	<title>Three.js - OffscreenCanvas</title>
+	<style>
+		html,
+		body {
+			height: 100%;
+			margin: 0;
+		}
+
+		#c {
+			width: 100%;
+			height: 100%;
+			display: block;
+		}
+
+		#noOffscreenCanvas {
+			display: flex;
+			width: 100%;
+			height: 100%;
+			align-items: center;
+			justify-content: center;
+			background: red;
+			color: white;
+		}
+	</style>
+</head>
+
+<body>
+	<canvas id="c"></canvas>
+	<div id="noOffscreenCanvas" style="display:none;">
+		<div>no OffscreenCanvas support</div>
+	</div>
+</body>
+<script type="module">
+	import * as THREE from 'https://cdn.skypack.dev/three@0.136.0/build/three.module.js';
+	function main() { /* eslint consistent-return: 0 */
+
+		const canvas = document.querySelector('#c');
+		if (!canvas.transferControlToOffscreen) {
+
+			canvas.style.display = 'none';
+			document.querySelector('#noOffscreenCanvas').style.display = '';
+			return;
+
+		}
+
+
+		const amount = 1000000;
+		const radius = 200;
+
+		const posBuffer = new SharedArrayBuffer(amount * 3 * 4);
+		const positions = new Float32Array(posBuffer);
+		const colorBuffer = new SharedArrayBuffer(amount * 3 * 4);
+		const colors = new Float32Array(colorBuffer);
+
+		const vertex = new THREE.Vector3();
+		const color = new THREE.Color(0xffffff);
+
+		for (let i = 0; i < amount; i++) {
+
+			vertex.x = (Math.random() * 2 - 1) * radius;
+			vertex.y = (Math.random() * 2 - 1) * radius;
+			vertex.z = (Math.random() * 2 - 1) * radius;
+			vertex.toArray(positions, i * 3);
+
+			if (vertex.x < 0) {
+
+				color.setHSL(0.5 + 0.1 * (i / amount), 0.7, 0.5);
+
+			} else {
+
+				color.setHSL(0.0 + 0.1 * (i / amount), 0.9, 0.5);
+
+			}
+
+			color.toArray(colors, i * 3);
+
+		}
+
+		const offscreen = canvas.transferControlToOffscreen();
+		const worker = new Worker('offscreencanvas.js', { type: 'module' });
+		worker.postMessage({ type: 'main', canvas: offscreen }, [offscreen]);
+
+		worker.postMessage({
+			type: 'dataBuffer', buffer: {
+				positions,
+				colors,
+			}
+		});
+
+
+		setInterval(() => {
+			for (let index = 0; index < amount * 3; index++) {
+				positions[index] += 1;;
+			}
+			worker.postMessage({
+				type: 'updatePosition',
+			});
+		}, 1000);
+
+		function sendSize() {
+
+			worker.postMessage({
+				type: 'size',
+				width: canvas.clientWidth,
+				height: canvas.clientHeight,
+			});
+
+		}
+
+		window.addEventListener('resize', sendSize);
+		sendSize();
+
+	}
+
+	main();
+
+</script>
+
+</html>
