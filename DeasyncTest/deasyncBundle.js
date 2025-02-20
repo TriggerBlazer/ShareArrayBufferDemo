@@ -746,8 +746,14 @@ if (typeof window === 'undefined') {
     };
 }
 fetchData();
-console.log("sync end"); 
-},{"deasync":6}],5:[function(require,module,exports){
+console.log("sync end");
+
+const { execSync } = require('child_process');
+
+console.log("Start");
+execSync('sleep 2');
+console.log("End");
+},{"child_process":1,"deasync":6}],5:[function(require,module,exports){
 (function (process,__filename){(function (){
 /**
  * Module dependencies.

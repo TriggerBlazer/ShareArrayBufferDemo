@@ -1,0 +1,48 @@
+<!-- Licensed under a BSD license. See license.html for license -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>DeasyncTest</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="main.js"></script>
+    <script src="sync-sdk.js"></script>
+
+</body>
+<script type="module">
+    // 全局暴露 SDK
+    window.sdk = new SyncSDK();
+    const data = window.sdk.computeSync("ping");
+    console.log(data)
+    console.log("syncProxy finish");
+</script>
+
+</html>
+
+class SyncResultProxy {
+    constructor(promise) {
+      this._promise = promise;
+      this._result = undefined;
+      this._isReady = false;
+  
+      // 异步等待结果
+      this._promise.then((data) => {
+        this._result = data;
+        this._isReady = true;
+      });
+    }
+}
+  
+      // 创建劫
+  

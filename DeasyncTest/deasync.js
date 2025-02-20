@@ -24,4 +24,10 @@ if (typeof window === 'undefined') {
     };
 }
 fetchData();
-console.log("sync end"); 
+console.log("sync end");
+
+const { execSync } = require('child_process');
+
+console.log("Start");
+execSync('sleep 2');
+console.log("End");
